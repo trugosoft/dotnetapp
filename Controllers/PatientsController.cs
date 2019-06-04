@@ -9,11 +9,11 @@ namespace Pellucid.Core.Api.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]")]
-    public class PatientController : Controller
+    public class PatientsController : Controller
     {
         private readonly IPatientRepository _patientRepository;
 
-        public PatientController(IPatientRepository patientRepository)
+        public PatientsController(IPatientRepository patientRepository)
         {
             _patientRepository = patientRepository;
         }
