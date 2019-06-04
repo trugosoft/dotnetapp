@@ -13,6 +13,7 @@
       "launchBrowser": true,
       "launchUrl": "api/notes",
       "environmentVariables": {
+        "DATABASE": "198.168.0.94",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },

@@ -27,16 +27,22 @@ namespace Pellucid.Core.Api.Controllers
                 _patientRepository.RemoveAllPatients();
                 for(int i=0; i<100;i++)
                 {
+                    int _age = (new Random().Next(1, 100));
+
+                    string someJson = @"{""Sameinfo"": """",""nested"": {""nested 2"": 111,""nested"": {""nested 3"": 0,""Verbose"": 20},""ErrorDate"": """"}}";
                     _patientRepository.AddPatient(new Patient()
                     {
-                        id = "00" + i.ToString(),
+                        id = "Pelucid_Client_" + i.ToString(),
                         name = "Pellucid_" + i.ToString(),
-                        age = (new Random().Next(0, 100)).ToString(),
-                        sex = i % 2 ==0 ? "M" : "F",
+                        age = _age.ToString(),
+                        sex = i % 2 == 0 ? "M" : "F",
+                        DOB = DateTime.Now.AddYears(-_age),
                         UpdatedOn = DateTime.Now,
-                        primary_phone_no = (new Random().Next(98929202, 99999999)).ToString()
+                        primary_phone_no = (new Random().Next(98929202, 99999999)).ToString(),
+                        Addtional_information = MongoDB.Bson.BsonDocument.Parse(someJson)
+                        // Addtional_information = Newtonsoft.Json.Linq.JObject.Parse(someJson)
 
-                    }) ;
+                    }); ;
 
                 }
                 return "Database with 100 patient information created ";

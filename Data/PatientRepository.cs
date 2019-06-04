@@ -24,7 +24,9 @@ namespace Pellucid.Core.Api.Data
         {
             try
             {
-                return await _context.Patient_list.Find(_ => true).ToListAsync();
+                return await _context.Patient_list.Find(_ => true)
+                    .SortBy(e => e.id)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
