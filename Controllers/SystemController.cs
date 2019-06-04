@@ -38,6 +38,8 @@ namespace Pellucid.Core.Api.Controllers
                         sex = i % 2 == 0 ? "M" : "F",
                         DOB = DateTime.Now.AddYears(-_age),
                         UpdatedOn = DateTime.Now,
+                        title = "MR",
+                        some_data = (new Random().Next(98929202, 99999999)).ToString(),
                         primary_phone_no = (new Random().Next(98929202, 99999999)).ToString(),
                         Addtional_information = MongoDB.Bson.BsonDocument.Parse(someJson)
                         // Addtional_information = Newtonsoft.Json.Linq.JObject.Parse(someJson)

@@ -15,6 +15,7 @@ namespace Pellucid.Core.Api.Model
         public string age { get; set; }
         public string sex { get; set; }
         public string title { get; set; }
+        public string some_data { get; set; }
         public DateTime? DOB { get; set; }
         [BsonExtraElements]
         public BsonDocument Addtional_information { get; set; }
