@@ -11,20 +11,20 @@ using MongoDB.Driver.Linq;
 
 namespace Pellucid.Core.Api.Data
 {
-    public class NoteRepository : INoteRepository
+    public class PatientRepository : IPatientRepository
     {
-        private readonly NoteContext _context = null;
+        private readonly PatientContext _context = null;
 
-        public NoteRepository(IOptions<Settings> settings)
+        public PatientRepository(IOptions<Settings> settings)
         {
-            _context = new NoteContext(settings);
+            _context = new PatientContext(settings);
         }
 
-        public async Task<IEnumerable<Note>> GetAllNotes()
+        public async Task<IEnumerable<Patient>> GetAllPatient()
         {
             try
             {
-                return await _context.Notes.Find(_ => true).ToListAsync();
+                return await _context.Patient_list.Find(_ => true).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -35,13 +35,13 @@ namespace Pellucid.Core.Api.Data
 
         // query after Id or InternalId (BSonId value)
         //
-        public async Task<Note> GetNote(string id)
+        public async Task<Patient> GetPatient(string id)
         {
             try
             {
                 ObjectId internalId = GetInternalId(id);
-                return await _context.Notes
-                                .Find(note => note.Id == id || note.InternalId == internalId)
+                return await _context.Patient_list
+                                .Find(patient => patient.id == id || patient.InternalId == internalId)
                                 .FirstOrDefaultAsync();
             }
             catch (Exception ex)
@@ -50,16 +50,21 @@ namespace Pellucid.Core.Api.Data
                 throw ex;
             }
         }
+        private ObjectId GetInternalId(string id)
+        {
+            if (!ObjectId.TryParse(id, out ObjectId internalId))
+                internalId = ObjectId.Empty;
 
+            return internalId;
+        }
         // query after body text, updated time, and header image size
         //
-        public async Task<IEnumerable<Note>> GetNote(string bodyText, DateTime updatedFrom, long headerSizeLimit)
+        public async Task<IEnumerable<Patient>> GetPatient(string name, string phone_no)
         {
             try
             {
-                var query = _context.Notes.Find(note => note.Body.Contains(bodyText) &&
-                                       note.UpdatedOn >= updatedFrom &&
-                                       note.HeaderImage.ImageSize <= headerSizeLimit);
+                var query = _context.Patient_list.Find(patient => patient.name.Contains(name) &&
+                                       patient.primary_phone_no.Contains(phone_no));
 
                 return await query.ToListAsync();
             }
@@ -70,20 +75,11 @@ namespace Pellucid.Core.Api.Data
             }
         }
 
-        // Try to convert the Id to a BSonId value
-        private ObjectId GetInternalId(string id)
-        {
-            if (!ObjectId.TryParse(id, out ObjectId internalId))
-                internalId = ObjectId.Empty;
-
-            return internalId;
-        }
-
-        public async Task AddNote(Note item)
+        public async Task AddPatient(Patient item)
         {
             try
             {
-                await _context.Notes.InsertOneAsync(item);
+                await _context.Patient_list.InsertOneAsync(item);
             }
             catch (Exception ex)
             {
@@ -92,33 +88,16 @@ namespace Pellucid.Core.Api.Data
             }
         }
 
-        public async Task<bool> RemoveNote(string id)
+        public async Task<bool> UpdatePatient(string id, string name)
         {
-            try
-            {
-                DeleteResult actionResult = await _context.Notes.DeleteOneAsync(
-                     Builders<Note>.Filter.Eq("Id", id));
-
-                return actionResult.IsAcknowledged 
-                    && actionResult.DeletedCount > 0;
-            }
-            catch (Exception ex)
-            {
-                // log or manage the exception
-                throw ex;
-            }
-        }
-
-        public async Task<bool> UpdateNote(string id, string body)
-        {
-            var filter = Builders<Note>.Filter.Eq(s => s.Id, id);
-            var update = Builders<Note>.Update
-                            .Set(s => s.Body, body)
+            var filter = Builders<Patient>.Filter.Eq(s => s.id, id);
+            var update = Builders<Patient>.Update
+                            .Set(s => s.name, name)
                             .CurrentDate(s => s.UpdatedOn);
 
             try
             {
-                UpdateResult actionResult = await _context.Notes.UpdateOneAsync(filter, update);
+                UpdateResult actionResult = await _context.Patient_list.UpdateOneAsync(filter, update);
 
                 return actionResult.IsAcknowledged
                     && actionResult.ModifiedCount > 0;
@@ -130,12 +109,12 @@ namespace Pellucid.Core.Api.Data
             }
         }
 
-        public async Task<bool> UpdateNote(string id, Note item)
+        public async Task<bool> UpdatePatient(string id, Patient item)
         {
             try
             {
-                ReplaceOneResult actionResult = await _context.Notes
-                                                .ReplaceOneAsync(n => n.Id.Equals(id)
+                ReplaceOneResult actionResult = await _context.Patient_list
+                                                .ReplaceOneAsync(n => n.Equals(id)
                                                                 , item
                                                                 , new UpdateOptions { IsUpsert = true });
                 return actionResult.IsAcknowledged
@@ -149,20 +128,20 @@ namespace Pellucid.Core.Api.Data
         }
 
         // Demo function - full document update
-        public async Task<bool> UpdateNoteDocument(string id, string body)
+        public async Task<bool> UpdatePatientInformation(string id, string name)
         {
-            var item = await GetNote(id) ?? new Note();
-            item.Body = body;
+            var item = await GetPatient(id) ?? new Patient();
+            item.name = name;
             item.UpdatedOn = DateTime.Now;
 
-            return await UpdateNote(id, item);
+            return await UpdatePatient(id, item);
         }
 
-        public async Task<bool> RemoveAllNotes()
+        public async Task<bool> RemoveAllPatients()
         {
             try
             {
-                DeleteResult actionResult = await _context.Notes.DeleteManyAsync(new BsonDocument());
+                DeleteResult actionResult = await _context.Patient_list.DeleteManyAsync(new BsonDocument());
 
                 return actionResult.IsAcknowledged
                     && actionResult.DeletedCount > 0;
@@ -181,13 +160,13 @@ namespace Pellucid.Core.Api.Data
         {
             try
             {
-                IndexKeysDefinition <Note> keys = Builders<Note>
+                IndexKeysDefinition<Patient> keys = Builders<Patient>
                                                     .IndexKeys
-                                                    .Ascending(item => item.UserId)
-                                                    .Ascending(item => item.Body);
+                                                    .Ascending(item => item.name)
+                                                    .Ascending(item => item.primary_phone_no);
 
-                return await _context.Notes
-                                .Indexes.CreateOneAsync(new CreateIndexModel<Note>(keys));
+                return await _context.Patient_list
+                                .Indexes.CreateOneAsync(new CreateIndexModel<Patient>(keys));
             }
             catch (Exception ex)
             {
@@ -195,5 +174,6 @@ namespace Pellucid.Core.Api.Data
                 throw ex;
             }
         }
+
     }
 }

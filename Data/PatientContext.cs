@@ -4,22 +4,22 @@ using Pellucid.Core.Api.Model;
 
 namespace Pellucid.Core.Api.Data
 {
-    public class NoteContext
+    public class PatientContext
     {
         private readonly IMongoDatabase _database = null;
 
-        public NoteContext(IOptions<Settings> settings)
+        public PatientContext(IOptions<Settings> settings)
         {
             var client = new MongoClient(settings.Value.ConnectionString);
             if (client != null)
                 _database = client.GetDatabase(settings.Value.Database);
         }
 
-        public IMongoCollection<Note> Notes
+        public IMongoCollection<Patient> Patient_list
         {
             get
             {
-                return _database.GetCollection<Note>("Note");
+                return _database.GetCollection<Patient>("patient");
             }
         }
     }

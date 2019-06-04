@@ -9,11 +9,11 @@ namespace Pellucid.Core.Api.Controllers
     [Route("api/[controller]")]
     public class SystemController : Controller
     {
-        private readonly INoteRepository _noteRepository;
+        private readonly IPatientRepository _patientRepository;
 
-        public SystemController(INoteRepository noteRepository)
+        public SystemController(IPatientRepository patientRepository)
         {
-            _noteRepository = noteRepository;
+            _patientRepository = patientRepository;
         }
 
         // Call an initialization - api/system/init
@@ -22,66 +22,24 @@ namespace Pellucid.Core.Api.Controllers
         {
             if (setting == "init")
             {
-                _noteRepository.RemoveAllNotes();
-                var name = _noteRepository.CreateIndex();
 
-                _noteRepository.AddNote(new Note()
+                var name = _patientRepository.CreateIndex();
+                _patientRepository.RemoveAllPatients();
+                for(int i=0; i<100;i++)
                 {
-                    Id = "1",
-                    Body = "Test note 1",
-                    UpdatedOn = DateTime.Now,
-                    UserId = 1,
-                    HeaderImage = new NoteImage
+                    _patientRepository.AddPatient(new Patient()
                     {
-                        ImageSize = 10,
-                        Url = "http://localhost/image1.png",
-                        ThumbnailUrl = "http://localhost/image1_small.png"
-                    }
-                });
+                        id = "00" + i.ToString(),
+                        name = "Pellucid_" + i.ToString(),
+                        age = (new Random().Next(0, 100)).ToString(),
+                        sex = i % 2 ==0 ? "M" : "F",
+                        UpdatedOn = DateTime.Now,
+                        primary_phone_no = (new Random().Next(98929202, 99999999)).ToString()
 
-                _noteRepository.AddNote(new Note()
-                {
-                    Id = "2",
-                    Body = "Test note 2",
-                    UpdatedOn = DateTime.Now,
-                    UserId = 1,
-                    HeaderImage = new NoteImage
-                    {
-                        ImageSize = 13,
-                        Url = "http://localhost/image2.png",
-                        ThumbnailUrl = "http://localhost/image2_small.png"
-                    }
-                });
+                    }) ;
 
-                _noteRepository.AddNote(new Note()
-                {
-                    Id = "3",
-                    Body = "Test note 3",
-                    UpdatedOn = DateTime.Now,
-                    UserId = 1,
-                    HeaderImage = new NoteImage
-                    {
-                        ImageSize = 14,
-                        Url = "http://localhost/image3.png",
-                        ThumbnailUrl = "http://localhost/image3_small.png"
-                    }
-                });
-
-                _noteRepository.AddNote(new Note()
-                {
-                    Id = "4",
-                    Body = "Test note 4",
-                    UpdatedOn = DateTime.Now,
-                    UserId = 1,
-                    HeaderImage = new NoteImage
-                    {
-                        ImageSize = 15,
-                        Url = "http://localhost/image4.png",
-                        ThumbnailUrl = "http://localhost/image4_small.png"
-                    }
-                });
-
-                return "Database NotesDb was created, and collection 'Notes' was filled with 4 sample items";
+                }
+                return "Database with 100 patient information created ";
             }
 
             return "Unknown";
